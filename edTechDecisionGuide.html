@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EdTech Decision Making Guide | 科技與創新決策指南</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: #fcfaf8;
+            color: #1f2937;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 400px;
+        }
+
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 300px;
+                max-height: 300px;
+            }
+        }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .check-anim {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        input[type="checkbox"]:checked + div .check-icon {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Custom Scrollbar for dark panel */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(31, 41, 55, 1); 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(75, 85, 99, 1); 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(107, 114, 128, 1); 
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0d9488',
+                        secondary: '#d97706',
+                        bglight: '#fcfaf8',
+                        panel: '#ffffff'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="antialiased selection:bg-primary selection:text-white">
+
+    <!-- Chosen Palette: Warm neutral background (#fcfaf8) with Teal (#0d9488) primary accents and warm Amber (#d97706) highlights. -->
+    
+    <!-- Application Structure Plan: 
+         - Top Nav: Language toggle.
+         - Header: Title.
+         - Session Manager: Dropdown for saved sessions, New Project button, Project Title/Description fields. Data saves to localStorage as JSON.
+         - Philosophy Cards: Expandable accordions for Heart, Head, Hands.
+         - HQL & Big 6: Interactive textareas for qualitative assessment.
+         - Evaluation Engine: Checkboxes mapping to the Radar chart + textareas for justification of each score.
+    -->
+
+    <!-- Visualization & Content Choices: 
+         1. Project Info -> Form inputs -> Goal: Organize/Save state.
+         2. HQL/Big 6 -> Textareas -> Goal: Qualitative Assessment -> Justification: Allows users to map their thoughts directly to the framework.
+         3. Evaluation Guide -> Checkbox + Textarea + Radar Chart -> Goal: Compare/Analyze -> Justification: Calculates readiness score while storing evidence. Library: Chart.js (Canvas).
+    -->
+
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <nav class="sticky top-0 z-50 glass-panel shadow-sm px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div>
+            <h1 class="text-xl font-bold text-gray-800 tracking-tight">VSA EdTech Guide</h1>
+            <p class="text-xs text-gray-500 font-medium lang-zh block mt-1">科技與創新決策指南</p>
+        </div>
+        <div class="flex items-center space-x-2 bg-gray-100 p-1 rounded-lg">
+            <button onclick="setLanguage('en')" id="btn-lang-en" class="px-3 py-1 text-sm rounded-md transition-colors bg-white shadow-sm font-semibold text-primary">EN</button>
+            <button onclick="setLanguage('bi')" id="btn-lang-bi" class="px-3 py-1 text-sm rounded-md transition-colors text-gray-500 hover:text-gray-700">EN + 中文</button>
+            <button onclick="setLanguage('zh')" id="btn-lang-zh" class="px-3 py-1 text-sm rounded-md transition-colors text-gray-500 hover:text-gray-700">中文</button>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
+
+        <header class="text-center max-w-3xl mx-auto space-y-4">
+            <h2 class="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
+                <span class="lang-en block">Technology Decision Dashboard</span>
+                <span class="lang-zh hidden mt-2">科技決策儀表板</span>
+            </h2>
+            <p class="text-lg text-gray-600">
+                <span class="lang-en block">Evaluate, document, and save your EdTech procurement decisions.</span>
+                <span class="lang-zh hidden mt-2">評估、記錄並儲存您的教育科技採購決策。</span>
+            </p>
+        </header>
+
+        <!-- Guidance / Intro Text -->
+        <section class="bg-teal-50 border-l-4 border-teal-500 p-6 rounded-r-2xl shadow-sm">
+            <div class="lang-en block text-teal-900 space-y-2 text-sm md:text-base">
+                <p class="font-bold text-lg">Thinking about an app, tech, an innovation, developing something new for your teaching and learning?</p>
+                <p>This page provides some areas to help you think through and make a decision.</p>
+                <p>Spaces have been provided for you to capture your answers and thoughts in each area. You do not have to fill in all - just the items that you think are useful and helpful. Information is saved on your device locally.</p>
+                <p class="italic mt-2">Hope this is a useful tool.</p>
+            </div>
+            <div class="lang-zh hidden text-teal-900 space-y-2 text-sm md:text-base mt-2">
+                <p class="font-bold text-lg">正在考慮將某個應用程式、科技、創新或新工具應用於您的教學中嗎？</p>
+                <p>此頁面提供了一些考量面向，幫助您釐清思緒並做出決定。</p>
+                <p>每個區域都預留了空間供您記錄答案和想法。您不必填寫所有內容 - 只需填寫您認為有用且有幫助的項目即可。所有資訊都會安全地儲存在您的裝置本地端。</p>
+                <p class="italic mt-2">希望這是一個實用的工具。</p>
+            </div>
+        </section>
+
+        <!-- Project Details & Session Management -->
+        <section class="bg-white rounded-2xl shadow-md border border-gray-200 p-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                <h3 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                    <span class="text-primary">&#x1F4C2;</span>
+                    <span class="lang-en block">Project Details</span>
+                    <span class="lang-zh hidden">專案詳情</span>
+                </h3>
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+                    <div class="flex-1">
+                        <select id="sessionDropdown" onchange="loadSession(this.value)" class="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary outline-none bg-gray-50 cursor-pointer">
+                            <!-- Options injected by JS -->
+                        </select>
+                    </div>
+                    <button onclick="openNextStepsModal()" id="nextStepsBtn" class="border border-primary bg-teal-50 text-teal-700 px-4 py-2 rounded-lg shadow-sm hover:bg-teal-100 transition-colors text-sm font-semibold flex-shrink-0 flex items-center justify-center gap-2">
+                        <span>&#x1F680;</span>
+                        <span class="lang-en block">Explore Next Steps</span>
+                        <span class="lang-zh hidden">探索下一步</span>
+                    </button>
+                    <button onclick="createNewSession()" class="bg-primary text-white px-5 py-2 rounded-lg shadow hover:bg-teal-700 transition-colors text-sm font-semibold flex-shrink-0">
+                        <span class="lang-en block">+ New Evaluation</span>
+                        <span class="lang-zh hidden">+ 新評估專案</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">
+                        <span class="lang-en block">Project Title</span>
+                        <span class="lang-zh hidden">專案名稱</span>
+                    </label>
+                    <input type="text" id="projectTitle" oninput="autoSave()" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" placeholder="Enter the name of the tool or project...">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">
+                        <span class="lang-en block">Briefly Describe the Project</span>
+                        <span class="lang-zh hidden">簡要描述專案</span>
+                    </label>
+                    <textarea id="projectDesc" oninput="autoSave()" class="w-full border border-gray-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all" placeholder="What are you hoping to achieve? What is the main purpose?"></textarea>
+                </div>
+            </div>
+        </section>
+
+        <!-- Philosophy Cards -->
+        <section class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+            <div class="mb-6">
+                <h3 class="text-xl font-bold text-gray-800 border-l-4 border-secondary pl-4">
+                    <span class="lang-en block">Overall Philosophy: Value, Strive, Act</span>
+                    <span class="lang-zh hidden mt-1">整體理念：價值、奮進、行動</span>
+                </h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="p-5 rounded-xl border border-gray-200 bg-gray-50 flex flex-col h-full">
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="text-3xl">❤️</div>
+                        <div id="stars_phil_heart"></div>
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900 mb-1">
+                        <span class="lang-en block">Value / Heart</span>
+                        <span class="lang-zh hidden">價值 / 心</span>
+                    </h4>
+                    <div class="text-gray-600 text-sm space-y-2 flex-1 flex flex-col">
+                        <p class="pt-3 border-t border-gray-200 mt-2 mb-3">
+                            <span class="lang-en block">• How might tech enhance empathy and human connection?</span>
+                            <span class="lang-zh hidden mt-1">• 科技如何增進同理心與人際連結？</span>
+                        </p>
+                        <textarea id="txt_phil_heart" oninput="autoSave()" class="w-full border border-gray-300 rounded p-3 text-sm focus:ring-2 focus:ring-primary outline-none flex-1 min-h-[100px] resize-y" placeholder="Document your thoughts here..."></textarea>
+                    </div>
+                </div>
+
+                <div class="p-5 rounded-xl border border-gray-200 bg-gray-50 flex flex-col h-full">
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="text-3xl">🧠</div>
+                        <div id="stars_phil_head"></div>
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900 mb-1">
+                        <span class="lang-en block">Strive / Head</span>
+                        <span class="lang-zh hidden">奮進 / 腦</span>
+                    </h4>
+                    <div class="text-gray-600 text-sm space-y-2 flex-1 flex flex-col">
+                        <p class="pt-3 border-t border-gray-200 mt-2 mb-3">
+                            <span class="lang-en block">• How might tech deepen our understanding?</span>
+                            <span class="lang-zh hidden mt-1">• 科技如何加深我們的理解？</span>
+                        </p>
+                        <textarea id="txt_phil_head" oninput="autoSave()" class="w-full border border-gray-300 rounded p-3 text-sm focus:ring-2 focus:ring-primary outline-none flex-1 min-h-[100px] resize-y" placeholder="Document your thoughts here..."></textarea>
+                    </div>
+                </div>
+
+                <div class="p-5 rounded-xl border border-gray-200 bg-gray-50 flex flex-col h-full">
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="text-3xl">🤲</div>
+                        <div id="stars_phil_hands"></div>
+                    </div>
+                    <h4 class="text-lg font-bold text-gray-900 mb-1">
+                        <span class="lang-en block">Act / Hands</span>
+                        <span class="lang-zh hidden">行動 / 手</span>
+                    </h4>
+                    <div class="text-gray-600 text-sm space-y-2 flex-1 flex flex-col">
+                        <p class="pt-3 border-t border-gray-200 mt-2 mb-3">
+                            <span class="lang-en block">• How might tech empower us to better serve our community?</span>
+                            <span class="lang-zh hidden mt-1">• 科技如何賦權我們更好地服務社區？</span>
+                        </p>
+                        <textarea id="txt_phil_hands" oninput="autoSave()" class="w-full border border-gray-300 rounded p-3 text-sm focus:ring-2 focus:ring-primary outline-none flex-1 min-h-[100px] resize-y" placeholder="Document your thoughts here..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Qualitative Evaluation: HQL & Big 6 -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- High Quality Learning -->
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xl">&#x2605;</div>
+                    <h3 class="text-2xl font-bold text-gray-800">
+                        <span class="lang-en block">High Quality Learning</span>
+                        <span class="lang-zh hidden mt-1">高品質學習</span>
+                    </h3>
+                </div>
+                <p class="text-gray-600 mb-6 text-sm">
+                    <span class="lang-en block">How does this technology support, develop or redefine how students are:</span>
+                    <span class="lang-zh hidden mt-2">這項科技如何支持、發展或重新定義學生：</span>
+                </p>
+                <div id="hql-container" class="space-y-4">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- The Big 6 -->
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-full bg-secondary bg-opacity-20 text-secondary flex items-center justify-center font-bold text-xl">?</div>
+                    <h3 class="text-2xl font-bold text-gray-800">
+                        <span class="lang-en block">The Big 6 Questions</span>
+                        <span class="lang-zh hidden mt-1">核心六問</span>
+                    </h3>
+                </div>
+                <p class="text-gray-600 mb-6 text-sm">
+                    <span class="lang-en block">How can the technology / assignment / task help these aspects?</span>
+                    <span class="lang-zh hidden mt-2">科技/任務如何能在以下方面提供幫助？</span>
+                </p>
+                <div id="big6-container" class="space-y-4">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Evaluation Engine -->
+        <section class="bg-gray-900 text-white rounded-2xl shadow-xl overflow-hidden mb-20">
+            <div class="p-8 md:p-12">
+                <h3 class="text-3xl font-bold mb-4">
+                    <span class="lang-en block">Interactive Evaluation Engine</span>
+                    <span class="lang-zh hidden mt-1">互動式評估引擎</span>
+                </h3>
+                <p class="text-gray-300 max-w-3xl mb-10">
+                    <span class="lang-en block">Check the criteria your tool meets and document your justification in the fields below. The Radar Chart will dynamically map your tool's readiness.</span>
+                    <span class="lang-zh hidden mt-2">勾選您的工具符合的標準，並在下方欄位記錄您的理由/證據。雷達圖將動態繪製準備度概況。</span>
+                </p>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    
+                    <div class="space-y-2 max-h-[800px] overflow-y-auto pr-4 custom-scrollbar" id="checklist-container">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-6 shadow-inner flex flex-col items-center justify-center h-full min-h-[400px] sticky top-24">
+                        <h4 class="text-gray-800 font-bold text-lg mb-4 text-center">
+                            <span class="lang-en block">Decision Readiness Profile</span>
+                            <span class="lang-zh hidden mt-1">決策準備度概況</span>
+                        </h4>
+                        <div class="chart-container">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                        <p class="text-gray-400 text-xs mt-4 text-center max-w-sm">
+                            <span class="lang-en block">Scores update automatically based on criteria checklist.</span>
+                            <span class="lang-zh hidden mt-1">分數根據勾選清單自動更新。</span>
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- Bottom Call to Action -->
+        <div class="flex justify-center pb-12">
+            <button onclick="openNextStepsModal()" class="border-2 border-primary bg-teal-50 text-teal-800 px-8 py-4 rounded-xl shadow-md hover:bg-teal-100 transition-all text-lg font-bold flex items-center justify-center gap-3">
+                <span class="text-2xl">&#x1F680;</span>
+                <span class="lang-en block">Explore Next Steps</span>
+                <span class="lang-zh hidden">探索下一步</span>
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Modal for Next Steps -->
+    <div id="nextStepsModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                    <span>&#x1F680;</span> Next Steps & Outreach
+                </h3>
+                <button onclick="closeNextStepsModal()" class="text-gray-400 hover:text-gray-700 font-bold text-2xl">&times;</button>
+            </div>
+            
+            <!-- Modal Body (Scrollable) -->
+            <div class="p-6 overflow-y-auto flex-1 space-y-8 bg-gray-50 custom-scrollbar">
+                
+                <!-- Email Section (Top 2/3 roughly) -->
+                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-lg font-bold text-gray-800">Email Draft to Andrew</h4>
+                        <button onclick="copyToClipboard('emailDraft', 'copyEmailBtn')" id="copyEmailBtn" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-teal-700 transition-colors shadow-sm">
+                            Copy Email
+                        </button>
+                    </div>
+                    <textarea id="emailDraft" class="w-full h-64 p-4 border border-gray-300 rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-primary outline-none" style="font-family: 'Inter', sans-serif;"></textarea>
+                </div>
+
+                <!-- Chat Section -->
+                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-lg font-bold text-gray-800">Quick Google Chat</h4>
+                        <button onclick="copyAndOpenChat()" id="copyChatBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm">
+                            Copy & Open Chat
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-3">Send a quick ping to <strong>achiu@vsa.edu.hk</strong> to get the ball rolling.</p>
+                    <textarea id="chatDraft" class="w-full h-16 p-3 border border-gray-300 rounded-lg text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 outline-none" style="font-family: 'Inter', sans-serif;"></textarea>
+                </div>
+
+                <!-- JSON Section (Bottom 1/3 roughly) -->
+                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-lg font-bold text-gray-800">Raw Project JSON</h4>
+                        <button onclick="copyToClipboard('jsonDraft', 'copyJsonBtn')" id="copyJsonBtn" class="bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700 transition-colors shadow-sm">
+                            Copy JSON
+                        </button>
+                    </div>
+                    <textarea id="jsonDraft" readonly class="w-full h-40 p-4 border border-gray-300 rounded-lg text-xs text-gray-600 font-mono bg-gray-50 focus:outline-none custom-scrollbar"></textarea>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data Definitions
+        const criteriaData = [
+            { id: 'sa1', cat: 1, en: "Aligns with strategic plan and future goals?", zh: "符合我們的戰略計畫和未來目標？", group: "Strategic Alignment" },
+            { id: 'sa2', cat: 1, en: "Aligns with school's mission, vision & VSA values?", zh: "與學校的使命、願景及 VSA 價值觀契合？", group: "Strategic Alignment" },
+            { id: 'sa3', cat: 1, en: "Identifies clearly who will benefit & be affected?", zh: "明確釐清誰將獲益與受到影響？", group: "Strategic Alignment" },
+            
+            { id: 'fi1', cat: 2, en: "Total cost is acceptable (including maintenance)?", zh: "總成本（包含維護）合理可接受？", group: "Financial & Operational" },
+            { id: 'fi2', cat: 2, en: "Current infrastructure can support it?", zh: "目前的基礎設施足以支援？", group: "Financial & Operational" },
+            { id: 'fi3', cat: 2, en: "Expected lifespan outlives potential obsolescence?", zh: "預期壽命大於被淘汰的風險？", group: "Financial & Operational" },
+            
+            { id: 'pe1', cat: 3, en: "Supports Bloom's Taxonomy & higher-order thinking?", zh: "支持布魯姆分類學和高階思維能力？", group: "Pedagogical Impact" },
+            { id: 'pe2', cat: 3, en: "Transforms learning (SAMR Model)?", zh: "轉化學習而非僅替代（SAMR 模型）？", group: "Pedagogical Impact" },
+            { id: 'pe3', cat: 3, en: "Addresses TPACK (Tech, Pedagogy, Content)?", zh: "處理 TPACK（科技、教學、內容）相互作用？", group: "Pedagogical Impact" },
+            
+            { id: 'ue1', cat: 4, en: "Supports equitable access for all students?", zh: "支持所有學生的公平使用和包容性？", group: "User & Equity" },
+            { id: 'ue2', cat: 4, en: "Teachers accept it & training is available?", zh: "教師接受且有提供專業培訓？", group: "User & Equity" },
+            { id: 'ue3', cat: 4, en: "Protects student data privacy and security?", zh: "保護學生數據隱私與安全？", group: "User & Equity" },
+            
+            { id: 'ef1', cat: 5, en: "Backed by research or case studies?", zh: "有研究或案例研究支持其有效性？", group: "Evidence & Future" },
+            { id: 'ef2', cat: 5, en: "Clear metrics exist to measure success?", zh: "有明確指標衡量成功與學習影響？", group: "Evidence & Future" },
+            { id: 'ef3', cat: 5, en: "Sustainable long-term (environmental/financial)?", zh: "具備長期永續性（環境與財務）？", group: "Evidence & Future" },
+        ];
+
+        const hqlData = [
+            { id: 'hql1', en: "Building on prior knowledge", zh: "在先備知識的基礎上建構" },
+            { id: 'hql2', en: "Identifying, analysing and inquiring into meaningful content", zh: "識別、分析並探究具意義的內容" },
+            { id: 'hql3', en: "Making connections to create new understanding", zh: "建立聯繫，從而創造新的理解" },
+            { id: 'hql4', en: "Applying understanding to real-world issues", zh: "將理解應用到現實世界的問題中" }
+        ];
+
+        const big6Data = [
+            { id: 'big6_1', en: "1. Build capacity for critical thinking?", zh: "1. 建立批判性思維的能力？" },
+            { id: 'big6_2', en: "2. Develop new lines of inquiry?", zh: "2. 發展新的探究方向？" },
+            { id: 'big6_3', en: "3. Make student thinking visible?", zh: "3. 讓思考過程具象化？" },
+            { id: 'big6_4', en: "4. Broaden perspective?", zh: "4. 拓寬視角？" },
+            { id: 'big6_5', en: "5. Purposeful work/projects?", zh: "5. 產出具目標性的成果？" },
+            { id: 'big6_6', en: "6. Expose to best-in-world examples?", zh: "6. 接觸最好的內容範例？" }
+        ];
+
+        // State Management
+        const STORAGE_KEY = 'edtech_decision_sessions';
+        let sessions = {};
+        let currentSessionId = null;
+        let radarChart = null;
+        let currentLang = 'bi';
+
+        // Star Rating Helpers
+        function getStarsHTML(id, theme = 'dark') {
+            const emptyClass = theme === 'dark' ? 'text-gray-600' : 'text-gray-300';
+            const clearClass = theme === 'dark' ? 'text-gray-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500';
+            return `
+                <div class="flex items-center gap-1 select-none" id="star_container_${id}" onmouseleave="resetStarsUI('${id}', '${theme}')">
+                    <span class="cursor-pointer ${clearClass} mr-2 text-sm transition-colors hidden" id="clear_${id}" onclick="selectStar('${id}', 0, '${theme}')" title="Clear rating">&#x2715;</span>
+                    <div class="flex gap-1 text-2xl">
+                        ${[1,2,3,4,5].map(num => `
+                            <span class="cursor-pointer transition-colors ${emptyClass}" 
+                                  id="star_${id}_${num}"
+                                  onmouseover="hoverStarsUI('${id}', ${num}, '${theme}')" 
+                                  onclick="selectStar('${id}', ${num}, '${theme}')">&#x2605;</span>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function hoverStarsUI(id, val, theme) {
+            const emptyClass = theme === 'dark' ? 'text-gray-600' : 'text-gray-300';
+            for (let i = 1; i <= 5; i++) {
+                const star = document.getElementById(`star_${id}_${i}`);
+                if (star) {
+                    if (i <= val) {
+                        star.className = `cursor-pointer transition-colors text-amber-400 drop-shadow-sm scale-110`;
+                    } else {
+                        star.className = `cursor-pointer transition-colors ${emptyClass}`;
+                    }
+                }
+            }
+        }
+
+        function resetStarsUI(id, theme) {
+            const currentVal = (sessions[currentSessionId] && sessions[currentSessionId].data && sessions[currentSessionId].data[id]) || 0;
+            updateStarsUI(id, currentVal, theme);
+        }
+
+        function updateStarsUI(id, val, theme = 'dark') {
+            const emptyClass = theme === 'dark' ? 'text-gray-600' : 'text-gray-300';
+            for (let i = 1; i <= 5; i++) {
+                const star = document.getElementById(`star_${id}_${i}`);
+                if (star) {
+                    if (i <= val) {
+                        star.className = `cursor-pointer transition-colors text-amber-400 drop-shadow-sm`;
+                    } else {
+                        star.className = `cursor-pointer transition-colors ${emptyClass}`;
+                    }
+                }
+            }
+
+            const clearBtn = document.getElementById(`clear_${id}`);
+            if (clearBtn) {
+                if (val > 0) {
+                    clearBtn.classList.remove('hidden');
+                } else {
+                    clearBtn.classList.add('hidden');
+                }
+            }
+        }
+
+        function selectStar(id, val, theme) {
+            if (!currentSessionId) return;
+            if (!sessions[currentSessionId].data) sessions[currentSessionId].data = {};
+            sessions[currentSessionId].data[id] = val;
+            autoSave();
+            updateStarsUI(id, val, theme);
+        }
+
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', () => {
+            renderDynamicUI();
+            initChart();
+            loadSessionsFromStorage();
+            setLanguage('bi');
+        });
+
+        function renderDynamicUI() {
+            // Render Checklist Engine
+            const engineContainer = document.getElementById('checklist-container');
+            let engineHtml = '';
+            let currentGroup = '';
+
+            criteriaData.forEach((item) => {
+                if (item.group !== currentGroup) {
+                    engineHtml += `<h5 class="text-teal-400 font-bold text-sm uppercase tracking-wider mt-8 mb-3 border-b border-gray-700 pb-1">${item.group}</h5>`;
+                    currentGroup = item.group;
+                }
+
+                engineHtml += `
+                    <div class="p-4 bg-gray-800 rounded-lg border border-gray-700 hover:border-teal-500 transition-colors">
+                        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-2">
+                            <div class="flex-1 mt-1">
+                                <span class="lang-en block text-gray-200 font-bold">${item.en}</span>
+                                <span class="lang-zh hidden text-gray-400 text-sm mt-1">${item.zh}</span>
+                            </div>
+                            <div class="flex-shrink-0 bg-gray-900 rounded-lg px-2 border border-gray-700 flex items-center shadow-inner pt-1">
+                                ${getStarsHTML('star_' + item.id, 'dark')}
+                            </div>
+                        </div>
+                        <textarea id="txt_${item.id}" oninput="autoSave()" class="w-full bg-gray-900 text-gray-200 border border-gray-600 rounded p-2 text-sm focus:ring-1 focus:ring-teal-400 outline-none placeholder-gray-500 mt-2" rows="2" placeholder="Justification / Evidence..."></textarea>
+                    </div>
+                `;
+            });
+            engineContainer.innerHTML = engineHtml;
+
+            // Render Phil Stars
+            document.getElementById('stars_phil_heart').innerHTML = getStarsHTML('star_phil_heart', 'light');
+            document.getElementById('stars_phil_head').innerHTML = getStarsHTML('star_phil_head', 'light');
+            document.getElementById('stars_phil_hands').innerHTML = getStarsHTML('star_phil_hands', 'light');
+
+            // Render HQL
+            const hqlContainer = document.getElementById('hql-container');
+            hqlContainer.innerHTML = hqlData.map(item => `
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <p class="font-bold text-gray-800 text-sm mb-2">
+                        <span class="lang-en block">${item.en}</span>
+                        <span class="lang-zh hidden">${item.zh}</span>
+                    </p>
+                    <textarea id="txt_${item.id}" oninput="autoSave()" class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-1 focus:ring-primary outline-none" rows="2" placeholder="How does it support this?"></textarea>
+                </div>
+            `).join('');
+
+            // Render Big 6
+            const big6Container = document.getElementById('big6-container');
+            big6Container.innerHTML = big6Data.map(item => `
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <p class="font-bold text-gray-800 text-sm mb-2">
+                        <span class="lang-en block">${item.en}</span>
+                        <span class="lang-zh hidden">${item.zh}</span>
+                    </p>
+                    <textarea id="txt_${item.id}" oninput="autoSave()" class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-1 focus:ring-primary outline-none" rows="2" placeholder="Project implementation notes..."></textarea>
+                </div>
+            `).join('');
+        }
+
+        // Session & Local Storage Logic
+        function loadSessionsFromStorage() {
+            try {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (stored) {
+                    sessions = JSON.parse(stored);
+                }
+            } catch(e) { console.error("Could not load sessions", e); }
+            
+            if (Object.keys(sessions).length === 0) {
+                createNewSession();
+            } else {
+                // Load the most recent session
+                const sessionIds = Object.keys(sessions).sort((a,b) => b.localeCompare(a));
+                loadSession(sessionIds[0]);
+            }
+        }
+
+        function updateDropdown() {
+            const dropdown = document.getElementById('sessionDropdown');
+            dropdown.innerHTML = '';
+            
+            // Sort keys descending (newest first based on timestamp ID)
+            const sortedIds = Object.keys(sessions).sort((a,b) => b.localeCompare(a));
+            
+            sortedIds.forEach(id => {
+                const opt = document.createElement('option');
+                opt.value = id;
+                let titleDisplay = sessions[id].title || 'Untitled Project';
+                // Truncate long titles in dropdown
+                if(titleDisplay.length > 30) titleDisplay = titleDisplay.substring(0, 27) + '...';
+                
+                const date = new Date(parseInt(id.split('_')[1]));
+                opt.textContent = `${titleDisplay} (${date.toLocaleDateString()})`;
+                if (id === currentSessionId) opt.selected = true;
+                dropdown.appendChild(opt);
+            });
+        }
+
+        function createNewSession() {
+            const timestamp = Date.now();
+            const newId = 'session_' + timestamp;
+            
+            sessions[newId] = {
+                id: newId,
+                title: "",
+                desc: "",
+                data: {}
+            };
+            
+            loadSession(newId);
+        }
+
+        function loadSession(id) {
+            if (!sessions[id]) return;
+            currentSessionId = id;
+            const session = sessions[id];
+
+            // Populate Meta
+            document.getElementById('projectTitle').value = session.title || "";
+            document.getElementById('projectDesc').value = session.desc || "";
+
+            // Clear text areas and reset stars
+            document.querySelectorAll('textarea').forEach(el => {
+                if(el.id !== 'projectDesc') el.value = '';
+            });
+            document.querySelectorAll('[id^="star_container_"]').forEach(container => {
+                const starId = container.id.replace('star_container_', '');
+                const theme = container.id.includes('phil') ? 'light' : 'dark';
+                updateStarsUI(starId, 0, theme);
+            });
+
+            // Populate fields from JSON state
+            if (session.data) {
+                // Migration for old checkbox data to 5 stars
+                for (const [key, val] of Object.entries(session.data)) {
+                    if (key.startsWith('chk_') && val === true) {
+                        const newKey = key.replace('chk_', 'star_');
+                        session.data[newKey] = 5;
+                        delete session.data[key];
+                    }
+                }
+
+                for (const [key, val] of Object.entries(session.data)) {
+                    const el = document.getElementById(key);
+                    if (el && el.tagName === 'TEXTAREA') {
+                        el.value = val;
+                    } else if (key.startsWith('star_')) {
+                        const theme = key.includes('phil') ? 'light' : 'dark';
+                        updateStarsUI(key, val, theme);
+                    }
+                }
+            }
+
+            updateDropdown();
+            updateChartFromState();
+            setLanguage(currentLang); // Re-apply language visibility
+        }
+
+        let saveTimeout;
+        function autoSave() {
+            if (!currentSessionId) return;
+            
+            // Debounce to avoid excessive local storage writes
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                
+                const title = document.getElementById('projectTitle').value;
+                const desc = document.getElementById('projectDesc').value;
+                const dataObj = sessions[currentSessionId].data || {};
+
+                // Gather text areas (stars update themselves via selectStar)
+                document.querySelectorAll('textarea').forEach(el => {
+                    if(el.id !== 'projectDesc') dataObj[el.id] = el.value;
+                });
+
+                sessions[currentSessionId].title = title;
+                sessions[currentSessionId].desc = desc;
+                sessions[currentSessionId].data = dataObj;
+
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+                } catch(e) { console.error("Could not save to localStorage", e); }
+                
+                updateDropdown(); // Update title in dropdown if changed
+                updateChartFromState();
+
+            }, 300);
+        }
+
+        // Chart Logic
+        function initChart() {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+            Chart.defaults.color = '#6b7280';
+            Chart.defaults.font.family = "'Inter', 'Noto Sans TC', sans-serif";
+
+            radarChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: [], // Set via language toggle
+                    datasets: [{
+                        label: 'Readiness Score',
+                        data: [0,0,0,0,0,0],
+                        backgroundColor: 'rgba(13, 148, 136, 0.4)', 
+                        borderColor: 'rgba(13, 148, 136, 1)',
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: 'rgba(13, 148, 136, 1)',
+                        pointHoverBackgroundColor: 'rgba(13, 148, 136, 1)',
+                        pointHoverBorderColor: '#ffffff',
+                        borderWidth: 2,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0,0,0,0.1)' },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            pointLabels: {
+                                font: { size: 12, weight: '600' },
+                                color: '#374151'
+                            },
+                            ticks: {
+                                beginAtZero: true,
+                                max: 5,
+                                stepSize: 1,
+                                display: false 
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` Average Score: ${context.raw} / 5`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChartFromState() {
+            if(!radarChart || !currentSessionId) return;
+            const sessionData = sessions[currentSessionId].data || {};
+            
+            // 6 Categories: 0=Philosophy, 1=Strategic, 2=Financial, 3=Pedagogical, 4=User, 5=Evidence
+            let totals = [0, 0, 0, 0, 0, 0];
+            let counts = [0, 0, 0, 0, 0, 0]; // Track only rated items
+
+            // Philosophy (Cat 0)
+            ['star_phil_heart', 'star_phil_head', 'star_phil_hands'].forEach(key => {
+                const val = sessionData[key] || 0;
+                if (val > 0) {
+                    totals[0] += val;
+                    counts[0]++;
+                }
+            });
+
+            // Engine Criteria (Cat 1-5)
+            criteriaData.forEach((item) => {
+                const val = sessionData[`star_${item.id}`] || 0;
+                if (val > 0) {
+                    totals[item.cat] += val;
+                    counts[item.cat]++;
+                }
+            });
+
+            // Calculate averages (avoid division by zero)
+            let averages = totals.map((t, i) => counts[i] > 0 ? parseFloat((t / counts[i]).toFixed(1)) : 0);
+
+            radarChart.data.datasets[0].data = averages;
+            radarChart.update();
+        }
+
+        // Modal & Export Logic
+        function openNextStepsModal() {
+            if (!currentSessionId || !sessions[currentSessionId]) return;
+            autoSave(); // Ensure latest data is saved
+
+            const session = sessions[currentSessionId];
+            const title = session.title || "[Insert Project Title]";
+            const desc = session.desc || "[Insert short description of the project]";
+            const data = session.data || {};
+
+            // 1. Build Email Draft
+            let strengths = [];
+            criteriaData.forEach(c => {
+                if(data['star_' + c.id] >= 4) strengths.push(c.en);
+            });
+            let strengthsText = strengths.length > 0 
+                ? `\nIt's looking very promising. Specifically, it has high ratings (4+ stars) for:\n- ${strengths.slice(0, 4).join('\n- ')}${strengths.length > 4 ? '\n- ...and more.' : ''}\n` 
+                : '';
+
+            // Extract a key point from text fields if filled out
+            let keyEvidence = "";
+            if (data['txt_hql1'] || data['txt_hql2'] || data['txt_sa1']) {
+                const evidenceNote = data['txt_hql1'] || data['txt_hql2'] || data['txt_sa1'];
+                keyEvidence = `\nI also noted down some evidence: "${evidenceNote}"\n`;
+            }
+
+            const emailText = `Hi Andrew,\n\nHope you're having a good week!\n\nI've been evaluating a new EdTech tool/project called "${title}" and put together some notes using the VSA Decision Guide. \n\nIn short: ${desc}\n${strengthsText}${keyEvidence}\nI've documented the full breakdown in my dashboard. Could we find a 15-minute slot sometime next week to chat about this and see what the next steps for procurement or piloting might look like?\n\nCheers,\n[Your Name]`;
+
+            // 2. Build Chat Draft
+            const chatText = `Hi Andrew, I'm looking into "${title}" for our classes. Got a few minutes this week to chat about an EdTech evaluation I just put together?`;
+
+            // 3. Populate Modal
+            document.getElementById('emailDraft').value = emailText;
+            document.getElementById('chatDraft').value = chatText;
+            document.getElementById('jsonDraft').value = JSON.stringify(session, null, 2);
+
+            // Show Modal
+            document.getElementById('nextStepsModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function closeNextStepsModal() {
+            document.getElementById('nextStepsModal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function copyToClipboard(elementId, buttonId) {
+            const textArea = document.getElementById(elementId);
+            textArea.select();
+            document.execCommand('copy');
+            
+            const btn = document.getElementById(buttonId);
+            const originalText = btn.innerText;
+            btn.innerText = "Copied!";
+            
+            if (buttonId === 'copyEmailBtn') {
+                btn.classList.replace('bg-primary', 'bg-green-600');
+                btn.classList.replace('hover:bg-teal-700', 'hover:bg-green-700');
+            } else if (buttonId === 'copyJsonBtn') {
+                btn.classList.replace('bg-gray-600', 'bg-green-600');
+                btn.classList.replace('hover:bg-gray-700', 'hover:bg-green-700');
+            }
+            
+            setTimeout(() => {
+                btn.innerText = originalText;
+                if (buttonId === 'copyEmailBtn') {
+                    btn.classList.replace('bg-green-600', 'bg-primary');
+                    btn.classList.replace('hover:bg-green-700', 'hover:bg-teal-700');
+                } else if (buttonId === 'copyJsonBtn') {
+                    btn.classList.replace('bg-green-600', 'bg-gray-600');
+                    btn.classList.replace('hover:bg-green-700', 'hover:bg-gray-700');
+                }
+            }, 2000);
+        }
+
+        function copyAndOpenChat() {
+            const textArea = document.getElementById('chatDraft');
+            textArea.select();
+            document.execCommand('copy');
+            
+            const btn = document.getElementById('copyChatBtn');
+            const originalText = btn.innerText;
+            btn.innerText = "Copied! Opening Chat...";
+            btn.classList.replace('bg-blue-600', 'bg-green-600');
+            btn.classList.replace('hover:bg-blue-700', 'hover:bg-green-700');
+            
+            setTimeout(() => {
+                window.open('https://chat.google.com/', '_blank');
+                btn.innerText = originalText;
+                btn.classList.replace('bg-green-600', 'bg-blue-600');
+                btn.classList.replace('hover:bg-green-700', 'hover:bg-blue-700');
+            }, 800);
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.getElementById('btn-lang-en').className = "px-3 py-1 text-sm rounded-md transition-colors text-gray-500 hover:text-gray-700";
+            document.getElementById('btn-lang-zh').className = "px-3 py-1 text-sm rounded-md transition-colors text-gray-500 hover:text-gray-700";
+            document.getElementById('btn-lang-bi').className = "px-3 py-1 text-sm rounded-md transition-colors text-gray-500 hover:text-gray-700";
+
+            document.getElementById('btn-lang-' + lang).className = "px-3 py-1 text-sm rounded-md transition-colors bg-white shadow-sm font-semibold text-primary";
+
+            const enEls = document.querySelectorAll('.lang-en');
+            const zhEls = document.querySelectorAll('.lang-zh');
+
+            if (lang === 'en') {
+                enEls.forEach(el => { el.classList.remove('hidden'); el.classList.add('block'); });
+                zhEls.forEach(el => { el.classList.remove('block', 'mt-1', 'mt-2'); el.classList.add('hidden'); });
+            } else if (lang === 'zh') {
+                enEls.forEach(el => { el.classList.remove('block'); el.classList.add('hidden'); });
+                zhEls.forEach(el => { el.classList.remove('hidden', 'text-gray-500', 'text-sm'); el.classList.add('block'); el.classList.remove('mt-1', 'mt-2'); });
+            } else if (lang === 'bi') {
+                enEls.forEach(el => { el.classList.remove('hidden'); el.classList.add('block'); });
+                zhEls.forEach(el => { 
+                    el.classList.remove('hidden'); 
+                    el.classList.add('block');
+                    if(el.tagName.toLowerCase() !== 'span' || !el.classList.contains('text-gray-500')) {
+                       el.classList.add('mt-1'); 
+                    }
+                });
+            }
+            
+            updateChartLabels(lang);
+        }
+
+        function updateChartLabels(lang) {
+            if(!radarChart) return;
+            
+            const labelsEN = [
+                ['Overall', 'Philosophy'], ['Strategic', 'Alignment'], ['Financial &', 'Operational'], ['Pedagogical', 'Impact'], ['User &', 'Equity'], ['Evidence &', 'Future']
+            ];
+            const labelsZH = [
+                ['整體理念'], ['戰略契合'], ['財務與營運'], ['教學影響'], ['用戶與公平'], ['證據與未來']
+            ];
+            const labelsBI = [
+                ['Overall Phil', '整體理念'], ['Strategic Alignment', '戰略契合'], ['Financial & Ops', '財務與營運'], ['Pedagogical Impact', '教學影響'], ['User & Equity', '用戶與公平'], ['Evidence & Future', '證據與未來']
+            ];
+
+            if(lang === 'en') radarChart.data.labels = labelsEN;
+            else if(lang === 'zh') radarChart.data.labels = labelsZH;
+            else radarChart.data.labels = labelsBI;
+            
+            radarChart.update();
+        }
+    </script>
+</body>
+</html>
