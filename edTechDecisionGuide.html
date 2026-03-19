@@ -429,7 +429,6 @@
         ];
 
         // State Management
-        const STORAGE_KEY = 'edtech_decision_sessions';
         let sessions = {};
         let currentSessionId = null;
         let radarChart = null;
@@ -508,7 +507,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             renderDynamicUI();
             initChart();
-            loadSessionsFromStorage();
+            loadSessionsFromDrive();
             setLanguage('bi');
         });
 
@@ -571,22 +570,28 @@
             `).join('');
         }
 
-        // Session & Local Storage Logic
-        function loadSessionsFromStorage() {
-            try {
-                const stored = localStorage.getItem(STORAGE_KEY);
-                if (stored) {
-                    sessions = JSON.parse(stored);
-                }
-            } catch(e) { console.error("Could not load sessions", e); }
-            
-            if (Object.keys(sessions).length === 0) {
-                createNewSession();
-            } else {
-                // Load the most recent session
-                const sessionIds = Object.keys(sessions).sort((a,b) => b.localeCompare(a));
-                loadSession(sessionIds[0]);
-            }
+        // Session & Google Drive Logic
+        function loadSessionsFromDrive() {
+            google.script.run
+                .withSuccessHandler((payload) => {
+                    sessions = (payload && payload.sessions && typeof payload.sessions === 'object')
+                        ? payload.sessions
+                        : {};
+
+                    if (Object.keys(sessions).length === 0) {
+                        createNewSession();
+                    } else {
+                        // Load the most recent session
+                        const sessionIds = Object.keys(sessions).sort((a,b) => b.localeCompare(a));
+                        loadSession(sessionIds[0]);
+                    }
+                })
+                .withFailureHandler((error) => {
+                    console.error('Could not load sessions from Apps Script', error);
+                    sessions = {};
+                    createNewSession();
+                })
+                .getAppData();
         }
 
         function updateDropdown() {
@@ -622,6 +627,7 @@
             };
             
             loadSession(newId);
+            autoSave();
         }
 
         function loadSession(id) {
@@ -634,8 +640,8 @@
             document.getElementById('projectDesc').value = session.desc || "";
 
             // Clear text areas and reset stars
-            document.querySelectorAll('textarea').forEach(el => {
-                if(el.id !== 'projectDesc') el.value = '';
+            document.querySelectorAll('textarea[id^="txt_"]').forEach(el => {
+                el.value = '';
             });
             document.querySelectorAll('[id^="star_container_"]').forEach(container => {
                 const starId = container.id.replace('star_container_', '');
@@ -683,17 +689,19 @@
                 const dataObj = sessions[currentSessionId].data || {};
 
                 // Gather text areas (stars update themselves via selectStar)
-                document.querySelectorAll('textarea').forEach(el => {
-                    if(el.id !== 'projectDesc') dataObj[el.id] = el.value;
+                document.querySelectorAll('textarea[id^="txt_"]').forEach(el => {
+                    dataObj[el.id] = el.value;
                 });
 
                 sessions[currentSessionId].title = title;
                 sessions[currentSessionId].desc = desc;
                 sessions[currentSessionId].data = dataObj;
 
-                try {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
-                } catch(e) { console.error("Could not save to localStorage", e); }
+                google.script.run
+                    .withFailureHandler((error) => {
+                        console.error('Could not save sessions to Google Drive', error);
+                    })
+                    .saveSessions(sessions);
                 
                 updateDropdown(); // Update title in dropdown if changed
                 updateChartFromState();
