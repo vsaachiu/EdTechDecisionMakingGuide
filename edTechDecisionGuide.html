@@ -438,30 +438,30 @@
         function getStarsHTML(id, theme = 'dark') {
             const emptyClass = theme === 'dark' ? 'text-gray-600' : 'text-gray-300';
             const clearClass = theme === 'dark' ? 'text-gray-500 hover:text-red-400' : 'text-gray-400 hover:text-red-500';
-            return `
-                <div class="flex items-center gap-1 select-none" id="star_container_${id}" onmouseleave="resetStarsUI('${id}', '${theme}')">
-                    <span class="cursor-pointer ${clearClass} mr-2 text-sm transition-colors hidden" id="clear_${id}" onclick="selectStar('${id}', 0, '${theme}')" title="Clear rating">&#x2715;</span>
-                    <div class="flex gap-1 text-2xl">
-                        ${[1,2,3,4,5].map(num => `
-                            <span class="cursor-pointer transition-colors ${emptyClass}" 
-                                  id="star_${id}_${num}"
-                                  onmouseover="hoverStarsUI('${id}', ${num}, '${theme}')" 
-                                  onclick="selectStar('${id}', ${num}, '${theme}')">&#x2605;</span>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
+            const starItems = [1, 2, 3, 4, 5].map((num) => {
+                return "<span class='cursor-pointer transition-colors " + emptyClass + "' " +
+                    "id='star_" + id + "_" + num + "' " +
+                    "onmouseover=\"hoverStarsUI('" + id + "', " + num + ", '" + theme + "')\" " +
+                    "onclick=\"selectStar('" + id + "', " + num + ", '" + theme + "')\">&#x2605;</span>";
+            }).join('');
+
+            return "<div class='flex items-center gap-1 select-none' id='star_container_" + id + "' " +
+                "onmouseleave=\"resetStarsUI('" + id + "', '" + theme + "')\">" +
+                "<span class='cursor-pointer " + clearClass + " mr-2 text-sm transition-colors hidden' " +
+                "id='clear_" + id + "' onclick=\"selectStar('" + id + "', 0, '" + theme + "')\" title='Clear rating'>&#x2715;</span>" +
+                "<div class='flex gap-1 text-2xl'>" + starItems + "</div>" +
+                "</div>";
         }
 
         function hoverStarsUI(id, val, theme) {
             const emptyClass = theme === 'dark' ? 'text-gray-600' : 'text-gray-300';
             for (let i = 1; i <= 5; i++) {
-                const star = document.getElementById(`star_${id}_${i}`);
+                const star = document.getElementById('star_' + id + '_' + i);
                 if (star) {
                     if (i <= val) {
-                        star.className = `cursor-pointer transition-colors text-amber-400 drop-shadow-sm scale-110`;
+                        star.className = 'cursor-pointer transition-colors text-amber-400 drop-shadow-sm scale-110';
                     } else {
-                        star.className = `cursor-pointer transition-colors ${emptyClass}`;
+                        star.className = 'cursor-pointer transition-colors ' + emptyClass;
                     }
                 }
             }
@@ -475,17 +475,17 @@
         function updateStarsUI(id, val, theme = 'dark') {
             const emptyClass = theme === 'dark' ? 'text-gray-600' : 'text-gray-300';
             for (let i = 1; i <= 5; i++) {
-                const star = document.getElementById(`star_${id}_${i}`);
+                const star = document.getElementById('star_' + id + '_' + i);
                 if (star) {
                     if (i <= val) {
-                        star.className = `cursor-pointer transition-colors text-amber-400 drop-shadow-sm`;
+                        star.className = 'cursor-pointer transition-colors text-amber-400 drop-shadow-sm';
                     } else {
-                        star.className = `cursor-pointer transition-colors ${emptyClass}`;
+                        star.className = 'cursor-pointer transition-colors ' + emptyClass;
                     }
                 }
             }
 
-            const clearBtn = document.getElementById(`clear_${id}`);
+            const clearBtn = document.getElementById('clear_' + id);
             if (clearBtn) {
                 if (val > 0) {
                     clearBtn.classList.remove('hidden');
@@ -519,24 +519,22 @@
 
             criteriaData.forEach((item) => {
                 if (item.group !== currentGroup) {
-                    engineHtml += `<h5 class="text-teal-400 font-bold text-sm uppercase tracking-wider mt-8 mb-3 border-b border-gray-700 pb-1">${item.group}</h5>`;
+                    engineHtml += "<h5 class='text-teal-400 font-bold text-sm uppercase tracking-wider mt-8 mb-3 border-b border-gray-700 pb-1'>" + item.group + "</h5>";
                     currentGroup = item.group;
                 }
 
-                engineHtml += `
-                    <div class="p-4 bg-gray-800 rounded-lg border border-gray-700 hover:border-teal-500 transition-colors">
-                        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-2">
-                            <div class="flex-1 mt-1">
-                                <span class="lang-en block text-gray-200 font-bold">${item.en}</span>
-                                <span class="lang-zh hidden text-gray-400 text-sm mt-1">${item.zh}</span>
-                            </div>
-                            <div class="flex-shrink-0 bg-gray-900 rounded-lg px-2 border border-gray-700 flex items-center shadow-inner pt-1">
-                                ${getStarsHTML('star_' + item.id, 'dark')}
-                            </div>
-                        </div>
-                        <textarea id="txt_${item.id}" oninput="autoSave()" class="w-full bg-gray-900 text-gray-200 border border-gray-600 rounded p-2 text-sm focus:ring-1 focus:ring-teal-400 outline-none placeholder-gray-500 mt-2" rows="2" placeholder="Justification / Evidence..."></textarea>
-                    </div>
-                `;
+                engineHtml += "<div class='p-4 bg-gray-800 rounded-lg border border-gray-700 hover:border-teal-500 transition-colors'>" +
+                    "<div class='flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-2'>" +
+                    "<div class='flex-1 mt-1'>" +
+                    "<span class='lang-en block text-gray-200 font-bold'>" + item.en + "</span>" +
+                    "<span class='lang-zh hidden text-gray-400 text-sm mt-1'>" + item.zh + "</span>" +
+                    "</div>" +
+                    "<div class='flex-shrink-0 bg-gray-900 rounded-lg px-2 border border-gray-700 flex items-center shadow-inner pt-1'>" +
+                    getStarsHTML('star_' + item.id, 'dark') +
+                    "</div>" +
+                    "</div>" +
+                    "<textarea id='txt_" + item.id + "' oninput='autoSave()' class='w-full bg-gray-900 text-gray-200 border border-gray-600 rounded p-2 text-sm focus:ring-1 focus:ring-teal-400 outline-none placeholder-gray-500 mt-2' rows='2' placeholder='Justification / Evidence...'></textarea>" +
+                    "</div>";
             });
             engineContainer.innerHTML = engineHtml;
 
@@ -547,27 +545,27 @@
 
             // Render HQL
             const hqlContainer = document.getElementById('hql-container');
-            hqlContainer.innerHTML = hqlData.map(item => `
-                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                    <p class="font-bold text-gray-800 text-sm mb-2">
-                        <span class="lang-en block">${item.en}</span>
-                        <span class="lang-zh hidden">${item.zh}</span>
-                    </p>
-                    <textarea id="txt_${item.id}" oninput="autoSave()" class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-1 focus:ring-primary outline-none" rows="2" placeholder="How does it support this?"></textarea>
-                </div>
-            `).join('');
+            hqlContainer.innerHTML = hqlData.map((item) => {
+                return "<div class='bg-gray-50 p-3 rounded-lg border border-gray-200'>" +
+                    "<p class='font-bold text-gray-800 text-sm mb-2'>" +
+                    "<span class='lang-en block'>" + item.en + "</span>" +
+                    "<span class='lang-zh hidden'>" + item.zh + "</span>" +
+                    "</p>" +
+                    "<textarea id='txt_" + item.id + "' oninput='autoSave()' class='w-full border border-gray-300 rounded p-2 text-sm focus:ring-1 focus:ring-primary outline-none' rows='2' placeholder='How does it support this?'></textarea>" +
+                    "</div>";
+            }).join('');
 
             // Render Big 6
             const big6Container = document.getElementById('big6-container');
-            big6Container.innerHTML = big6Data.map(item => `
-                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                    <p class="font-bold text-gray-800 text-sm mb-2">
-                        <span class="lang-en block">${item.en}</span>
-                        <span class="lang-zh hidden">${item.zh}</span>
-                    </p>
-                    <textarea id="txt_${item.id}" oninput="autoSave()" class="w-full border border-gray-300 rounded p-2 text-sm focus:ring-1 focus:ring-primary outline-none" rows="2" placeholder="Project implementation notes..."></textarea>
-                </div>
-            `).join('');
+            big6Container.innerHTML = big6Data.map((item) => {
+                return "<div class='bg-gray-50 p-3 rounded-lg border border-gray-200'>" +
+                    "<p class='font-bold text-gray-800 text-sm mb-2'>" +
+                    "<span class='lang-en block'>" + item.en + "</span>" +
+                    "<span class='lang-zh hidden'>" + item.zh + "</span>" +
+                    "</p>" +
+                    "<textarea id='txt_" + item.id + "' oninput='autoSave()' class='w-full border border-gray-300 rounded p-2 text-sm focus:ring-1 focus:ring-primary outline-none' rows='2' placeholder='Project implementation notes...'></textarea>" +
+                    "</div>";
+            }).join('');
         }
 
         // Session & Google Drive Logic
@@ -609,7 +607,7 @@
                 if(titleDisplay.length > 30) titleDisplay = titleDisplay.substring(0, 27) + '...';
                 
                 const date = new Date(parseInt(id.split('_')[1]));
-                opt.textContent = `${titleDisplay} (${date.toLocaleDateString()})`;
+                opt.textContent = titleDisplay + ' (' + date.toLocaleDateString() + ')';
                 if (id === currentSessionId) opt.selected = true;
                 dropdown.appendChild(opt);
             });
@@ -755,7 +753,7 @@
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return ` Average Score: ${context.raw} / 5`;
+                                    return ' Average Score: ' + context.raw + ' / 5';
                                 }
                             }
                         }
@@ -783,7 +781,7 @@
 
             // Engine Criteria (Cat 1-5)
             criteriaData.forEach((item) => {
-                const val = sessionData[`star_${item.id}`] || 0;
+                const val = sessionData['star_' + item.id] || 0;
                 if (val > 0) {
                     totals[item.cat] += val;
                     counts[item.cat]++;
@@ -813,20 +811,20 @@
                 if(data['star_' + c.id] >= 4) strengths.push(c.en);
             });
             let strengthsText = strengths.length > 0 
-                ? `\nIt's looking very promising. Specifically, it has high ratings (4+ stars) for:\n- ${strengths.slice(0, 4).join('\n- ')}${strengths.length > 4 ? '\n- ...and more.' : ''}\n` 
+                ? "\nIt's looking very promising. Specifically, it has high ratings (4+ stars) for:\n- " + strengths.slice(0, 4).join('\n- ') + (strengths.length > 4 ? '\n- ...and more.' : '') + "\n"
                 : '';
 
             // Extract a key point from text fields if filled out
             let keyEvidence = "";
             if (data['txt_hql1'] || data['txt_hql2'] || data['txt_sa1']) {
                 const evidenceNote = data['txt_hql1'] || data['txt_hql2'] || data['txt_sa1'];
-                keyEvidence = `\nI also noted down some evidence: "${evidenceNote}"\n`;
+                keyEvidence = '\nI also noted down some evidence: "' + evidenceNote + '"\n';
             }
 
-            const emailText = `Hi Andrew,\n\nHope you're having a good week!\n\nI've been evaluating a new EdTech tool/project called "${title}" and put together some notes using the VSA Decision Guide. \n\nIn short: ${desc}\n${strengthsText}${keyEvidence}\nI've documented the full breakdown in my dashboard. Could we find a 15-minute slot sometime next week to chat about this and see what the next steps for procurement or piloting might look like?\n\nCheers,\n[Your Name]`;
+            const emailText = 'Hi Andrew,\n\nHope you\'re having a good week!\n\nI\'ve been evaluating a new EdTech tool/project called "' + title + '" and put together some notes using the VSA Decision Guide. \n\nIn short: ' + desc + '\n' + strengthsText + keyEvidence + '\nI\'ve documented the full breakdown in my dashboard. Could we find a 15-minute slot sometime next week to chat about this and see what the next steps for procurement or piloting might look like?\n\nCheers,\n[Your Name]';
 
             // 2. Build Chat Draft
-            const chatText = `Hi Andrew, I'm looking into "${title}" for our classes. Got a few minutes this week to chat about an EdTech evaluation I just put together?`;
+            const chatText = 'Hi Andrew, I\'m looking into "' + title + '" for our classes. Got a few minutes this week to chat about an EdTech evaluation I just put together?';
 
             // 3. Populate Modal
             document.getElementById('emailDraft').value = emailText;
